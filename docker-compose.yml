@@ -1,0 +1,54 @@
+version: "3"
+services:
+    api-gateway:
+        build: './api-gateway'
+        depends_on: 
+            - listings-service
+            - users-service
+        environment: 
+            - LISTINGS_SERVICE_URI=http://listings-service:7100
+            - USERS_SERVICE_URI=http://users-service:7101
+        volumes:
+            - ./api-gateway:/opt/app
+        ports: 
+            - 7000:7000
+
+    listings-service:
+        build: "./listings-service"
+        depends_on:
+            - listings-service-db
+        environment: 
+            - DB_URI=mongodb://root:example@listings-service-db/db?authSource=admin
+            - DB_NAME=db
+        volumes:
+            - ./listings-service:/opt/app
+        ports:
+            - 7100:7100
+
+    listings-service-db:
+        image: mongo
+        environment: 
+            - MONGO_INITDB_ROOT_USERNAME=root
+            - MONGO_INITDB_ROOT_PASSWORD=example
+        ports:
+            - 0.0.0.0:7200:27017
+    
+    users-service:
+        build: "./users-service"
+        depends_on:
+            - users-service-db
+        environment: 
+            - DB_URI=mongodb://root:example@users-service-db/db?authSource=admin
+            - DB_NAME=db
+        volumes:
+            - ./users-service:/opt/app
+        ports:
+            - 7101:7101
+
+    users-service-db:
+        image: mongo
+        environment: 
+            - MONGO_INITDB_ROOT_USERNAME=root
+            - MONGO_INITDB_ROOT_PASSWORD=example
+        ports:
+            - 0.0.0.0:7201:27017
